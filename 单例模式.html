@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>单例模式</title>
+    <style>
+
+    </style>
+</head>
+<body>
+<button id="logBtn">login</button>
+</body>
+<script>
+	let getSingle = function (fn) {
+		let result;
+//        result 变量存在于闭包中，永远不会被销毁，而在将来的请求在中，如果
+//        result 已经被赋值，那么它将返回该值。
+		return function () {
+			return result || (result = fn.apply(this, arguments));
+		}
+	};
+
+	let createLoginLayer = function () {
+		let div = document.createElement('div');
+		div.innerHTML = "我是登录浮窗";
+		div.id = "loginLayer";
+		div.style.display = "none";
+		document.body.appendChild(div);
+		return div;
+	};
+
+	let createSingleLoginLayer = getSingle(createLoginLayer);
+
+	document.querySelector("#logBtn").onclick = function (e) {
+		let loginLayer = createSingleLoginLayer();
+		loginLayer.style.display = 'block';
+	}
+
+</script>
+</html>

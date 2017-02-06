@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>策略模式-缓动动画</title>
+</head>
+<body>
+<div style="position:absolute;background: blue;" id="div">
+    我是div
+</div>
+</body>
+<script>
+
+let tween = {
+	// 动画类库，用于封装缓动算法
+//    	t:动画已经消耗的时间
+//        b:小球的原始位置
+//        c:小球目标位置
+//        d:动画持续的总时间
+    linear: function (t, b, c, d) {
+        return c * t / d + b;
+    },
+    easeIn: function (t, b, c, d) {
+        return c * (t /= d) * t + b;
+    },
+    strongEaseIn: function (t, b, c, d) {
+        return c * (t /= d) * t * t * t * t + b;
+    }
+};
+
+	let Animate = function (dom) {
+//        Animate 接收的一个参数是即将运动起来的 dom 节点
+		this.dom = dom;//进行运动的 dom 节点
+		this.startTime = 0;//动画开始时间
+		this.startPos = 0; //dom 节点的初始位置
+		this.endPos = 0; //dom 的目标位置
+		this.propertyName = null;//dom 节点需要改变的 css 属性名
+		this.easing = null;//缓动算法
+		this.duration = null;//动画持续时间
+
+	};
+
+	Animate.prototype = {
+		start: function (propertyName, endPos, duration, easing) {
+            // Animate.start 方法用于启动动画，并记录动画开始瞬间，dom 的初始信息
+            this.startTime = +new Date(); // 动画启动时间
+            this.startPos = this.dom.getBoundingClientRect()[propertyName]; // dom 节点的初始位置
+            this.propertyName = propertyName;// 节点需要改变的 css 属性名
+            this.endPos = endPos;//dom 节点目标位置
+            this.duration = duration;// 动画持续时间
+            this.easing = tween[easing];//缓动算法
+
+            let self = this;
+            let timeId = setInterval(function () {
+                // 启动定时器，开始执行动画
+                if (self.step() === false){
+                	// 动画已经结束，清除定时器
+                    clearInterval(timeId);
+                }
+            }, 19);
+		},
+
+        step: function () {
+            let t = + new Date;
+            if ( t >= this.startTime + this.duration){
+            	this.update(this.endPos);// 更新小球的 css 属性值
+                return false;
+            }
+            let pos = this.easing( t - this.startTime, this.startPos, this.endPos - this.startPos, this.duration)
+            // pos 为当前小球位置
+            this.update(pos);
+            // 更新小球的 css 属性值
+        },
+
+        update: function (pos) {
+			// 更新小球的 css 属性值
+            this.dom.style[this.propertyName] = pos + 'px';
+        }
+    };
+
+	let div = document.getElementById("div")
+    let animate = new Animate(div);
+	animate.start('left', 500, 1000, 'strongEaseIn');
+//	animate.start('top', 500, 1500, 'linear');
+
+</script>
+</html>
