@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>发布-订阅模式</title>
+</head>
+<body>
+
+</body>
+<script>
+	//    发布订阅模式，也叫观察者模式，它定义对象间一种一对多的依赖关系
+	//    当一个对象的状态发生改变的时候，所有依赖它的对象都会得到通知
+	//发布订阅模式有如下几个关键要素：
+	//    1.首先要指定谁是发布者；
+	//    2.给发布者添加一个缓存列表，用于存放回调函数便于通知订阅者
+	//    3.发布消息，发布者会遍历所有订阅者(缓存)，并触发订阅者的回调函数
+	let saleOffices = {}; // 发布者
+
+	saleOffices.clientList = []; // 缓存列表，缓存订阅者的 callback
+
+    saleOffices.listener = function (key, fn) {
+//    	添加订阅者回调函数
+//        如果没有订阅此类消息，则为该类创建一缓存列表
+       if (!this.clientList[key]){
+       	this.clientList[key] = [];
+       }
+       this.clientList[key].push(fn);
+    };
+
+
+    saleOffices.trigger = function () {
+//        发布消息
+        let key = Array.prototype.shift.call(arguments);
+        // 截取消息类型
+        let fns = this.clientList[key];
+        // 取回 key 对应的订阅者的回调函数列表；
+        if (!fns || fns.length == 0){
+        	// 如果么有订阅消息则返回
+        	return false;
+        }
+
+        for(let i = 0, fn; fn = fns[i++];){
+        	fn.apply(this, arguments);
+        }
+    };
+
+    saleOffices.listener('100万', function (price, area) {
+        console.log("price:" + price);
+        console.log("area:" + area);
+    });
+
+    saleOffices.trigger("100万",100000, "1000平米");
+</script>
+</html>

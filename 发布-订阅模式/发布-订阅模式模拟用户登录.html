@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>发布-订阅模式模拟用户登录</title>
+    <link rel="stylesheet" href="../sass/bootstrap.css">
+    <link rel="stylesheet" href="../sass/bootstrap-theme.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        #loginDiv {
+            width: 400px;
+            height: 400px;
+            position: fixed;
+            left: 25%;
+            top: 25%;
+
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+
+        }
+
+        header {
+            width: 100%;
+            height: 200px;
+            background-color: #2aabd2;
+        }
+
+        section {
+            flex: 1;
+            background-color: lightgreen;
+        }
+
+        footer {
+
+            height: 200px;
+            background-color: lightpink;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <button id="logBtn" class="btn btn-default">登录</button>
+</header>
+<section>
+    <aside>菜单</aside>
+    <article>内容</article>
+</section>
+<footer>底部</footer>
+</body>
+<script>
+	function getSingle(fn) {
+		let result;
+		return function () {
+			return result || (result = fn.apply(this, arguments))
+		}
+	}
+
+	function createLoginLayer() {
+		let div = document.createElement('div');
+		div.id = "loginDiv";
+		div.innerHTML = `<div class="panel">
+             <form id="regForm" action="" class="form-group">
+                <div class="well">
+            <div class="form-group"><label for="">用户名:<input type="text" name="userName" class="form-control"></label>
+            </div>
+            <div class="form-group"><label for="">密码:<input type="text" name="userPassword"
+                                                            class="form-control"></label></div>
+            <div class="form-group"><label for="">手机号:<input type="text" class="form-control"
+                                                             name="phoneNumber"></label></div>
+            <div class="form-group"><label for="">邮箱:<input type="text" class="form-control"></label></div>
+            <div class="form-group">
+                <button class="btn btn-primary">提交</button>
+                <button class="btn btn-primary" id="logOutBtn">退出</button>
+            </div>
+            </div>
+         </form>
+        </div>`;
+
+		div.style.display = "none";
+		document.body.appendChild(div);
+		return div;
+	}
+
+	let createSingleLoginLayer = getSingle(createLoginLayer);
+
+	document.querySelector("#logBtn").onclick = function (e) {
+		let loginLayer = createSingleLoginLayer();
+		loginLayer.style.display = "block";
+
+		document.querySelector("#logOutBtn").onclick = function () {
+			loginLayer.style.display = "none";
+		}
+	};
+
+
+</script>
+</html>
