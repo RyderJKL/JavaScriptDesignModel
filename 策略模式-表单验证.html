@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>策略模式-表单验证</title>
+    <link rel="stylesheet" href="sass/bootstrap.css">
+    <link rel="stylesheet" href="sass/bootstrap-theme.css">
+</head>
+<body>
+<div class="panel">
+    <form id="regForm" action="" class="form-group">
+        <div class="well">
+            <div class="form-group"><label for="">用户名:<input type="text" name="userName" class="form-control"></label>
+            </div>
+            <div class="form-group"><label for="">密码:<input type="text" name="userPassword"
+                                                            class="form-control"></label></div>
+            <div class="form-group"><label for="">手机号:<input type="text" class="form-control"
+                                                             name="phoneNumber"></label></div>
+            <div class="form-group"><label for="">邮箱:<input name="userEmail" type="text" class="form-control"></label>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary">提交</button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+</body>
+<script>
+
+
+let strategies = {
+    //	策略对象，封装验证表单的规则
+    isNotEmpty: function (value, errorMsg) {
+        if (value == '') {
+            return errorMsg;
+        }
+    },
+
+    minLength: function (value, length, errorMsg) {
+        if (value.length < length) {
+            return errorMsg;
+        }
+    },
+
+    legalPhone: function (value, errorMsg) {
+        let regPhone = /^1[345678]\d{9}$/g;
+        if (!regPhone.test(value)) {
+            return errorMsg;
+        }
+    },
+
+    legalEmail: function (value, errorMsg) {
+        let regEmail = /^\w{1,18}@([a-z][0-9]){2,7}.[a-z]{2,4}$/i;
+        if (!regEmail.test(value)) {
+            return errorMsg;
+        }
+    }
+
+};
+
+
+	let regForm = document.querySelector("#regForm");
+
+let validateFunc = function () {
+//		validateFunc 执行表单验证函数
+//        添加验证规则
+    let validator = new Validate();
+    // 创建一个 Validate 类，作用是作为 `Context`，负者接收用户的输入并将用户输入的内容委托给 `strategy` 对象。
+    validator.add(regForm.userName, [
+        {
+            strategy: "isNotEmpty",
+            errorMsg: "用户名不能为空",
+        }, {
+            strategy: "minLength:6",
+            errorMsg: "密码长度不能小于六位"
+        }]);
+    validator.add(regForm.userPassword, [{
+        strategy: "minLength:6",
+        errorMsg: "密码长度不能小于六位"
+    }]);
+    validator.add(regForm.phoneNumber, [{
+        strategy: "legalPhone",
+        errorMsg: "手机号格式不正确"
+    }]);
+    validator.add(regForm.userEmail, [{
+        strategy: "legalEmail",
+        errorMsg: "邮箱格式不正确"
+    }]);
+
+    return validator.start();
+    // 返回校验结果
+};
+
+let Validate = function () {
+    //	验证表单的类
+    // Validate 类作为 Context，负者接收用户的请求并委托给 strategies 对象
+    this.cache = [];
+//        保存验证规则的数组
+};
+
+Validate.prototype = {
+    constructor: Validate,
+    add: function (dom, rules) {
+        //        规则关联，将规则与对应的元素进行绑定，并返回验证结果
+
+        let self = this;
+        for (let i =0, rule; rule = rules[i++];){
+            (function (rule) {
+                let strategyArr = rule.strategy.split(":");
+                // 参数解析
+                let errorMsg = rule.errorMsg;
+                // 获取错误信息
+                self.cache.push(function() {
+                    // 推入策略规则
+                    let strategy = strategyArr.shift();
+                    // 首先截取策略名称
+                    strategyArr.unshift(dom.value);
+                    // 添加 dom 的内容
+                    strategyArr.push(errorMsg);
+                    // 推入错误信息
+                    return strategies[strategy].apply(dom, strategyArr);
+                    // 信息策略，并返回校验结果
+                });
+            })(rule);
+        }
+    },
+
+    start: function () {
+        for (let i = 0, validaterFunc; validaterFunc = this.cache[i++];) {
+            let msg = validaterFunc();
+            // 开始校验，并取得校验后的返回信息
+            if (msg) {
+                // 如若有返回值，说明校验不成功
+                return msg;
+            }
+        }
+
+    },
+};
+
+
+	regForm.onsubmit = function () {
+		let errorMsg = validateFunc();
+		// 若，validateFunc 没有任何值返回，则代表校验通过
+		if (errorMsg) {
+			alert(errorMsg);
+			return false;
+//       	阻止表单提交
+		}
+	}
+</script>
+</html>
